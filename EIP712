@@ -1,1 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title> EIP-712 Analise</title>
+    <style>
+      html,
+      body {
+        height: 100%;
+        padding: 0 2rem;
+      }
+      html {
+        font-size: 10px;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+      }
+      h1,
+      h3,
+      h4 {
+        margin-top: 1rem;
+        margin-bottom: 1rem;
+      }
+      h3 {
+        color: blueviolet;
+        font-size: 3rem;
+      }
+      #signature {
+        overflow-wrap: break-word;
+        word-wrap: break-word;
+        font-size: 1.6rem;
+        background-color: #cbcbcbcb;
+        padding: 2rem;
+        border-radius: 0.8rem;
+        max-width: 100%;
+        margin-top: 2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1> ***</h1>
+    <h3>*************************</h3>
+    <p>
+      Este EIP visa melhorar a usabilidade da assinatura de mensagens fora da
+      cadeia para uso na cadeia.
+    </p>
+    <a href="https://eips.ethereum.org/EIPS/eip-712" target="_blank">Documentação do EPI-712</a>
+    <h4 id="account"></h4>
+    <button id="singIn">SingIn Change</button>
+    
+    <div id="signature">
+      Signature
+    </div>
 
+    <script type="module">
+      import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
+
+      const singInElem = document.querySelector("#singIn");
+      const accountElem = document.querySelector("#account");
+      const signatureElem = document.querySelector("#signature");
+
+      singInElem.addEventListener("click", async function(event) {
+        event.preventDefault();
+        if (!("ethereum" in window)) {
+          throw Error("MetaMask isn't installed");
+        }
+
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        
+        const signer = await provider.getSigner();
+        accountElem.textContent = `Address: ${signer?.address}`
+        
+        // const signatureMessage = await signer.signMessage("Sending Ether from Ana to Bob")
+        // console.log(signatureMessage);
+
+        const domain = {
+          name: "Ether Mail",
+          version: "1",
+          chainId: 80001,
+          verifyingContract: "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+        };
+
+        // The named list of all type definitions
+        const types = {
+          Person: [
+            { name: "name", type: "string" },
+            { name: "wallet", type: "address" },
+          ],
+          Mail: [
+            { name: "from", type: "Person" },
+            { name: "to", type: "Person" },
+            { name: "contents", type: "string" },
+          ],
+        };
+
+        // The data to sign
+        const value = {
+          from: {
+            name: "Ana",
+            wallet: "0x9ACbC15097b795B281D163A7C80b68f3B7a504Ea",
+          },
+          to: {
+            name: "Bob",
+            wallet: "0x8D4Db00CD47035ECDeA0815bDB565b956b2844eb",
+          },
+          contents: "Hello, Bob!",
+        };
+        
+        const signature = await signer.signTypedData(domain, types, value);
+        signatureElem.textContent = `Signature: ${signature}`;
+        // Bônus
+        const digest = ethers.TypedDataEncoder.hash(domain, types, value)
+        console.log("Recovery address by signature: ", ethers.recoverAddress(digest, signature))
+      });
+    </script>
+  </body>
+</html>
