@@ -56,6 +56,7 @@
     <div id="signature">
       Signature
     </div>
+    <div id="send"></div>
 
     <script type="module">
       import { ethers } from "https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.min.js";
@@ -63,6 +64,7 @@
       const singInElem = document.querySelector("#singIn");
       const accountElem = document.querySelector("#account");
       const signatureElem = document.querySelector("#signature");
+      const sendElem = document.querySelector("#send");
 
       singInElem.addEventListener("click", async function(event) {
         event.preventDefault();
@@ -101,21 +103,23 @@
         // The data to sign
         const value = {
           from: {
-            name: "Ana",
-            wallet: "0x9ACbC15097b795B281D163A7C80b68f3B7a504Ea",
+            name: "Marcio envia",
+            wallet: "0x6DD3A0eB4803dD4E61142024A56287DFeEc4C101",
           },
           to: {
-            name: "Bob",
-            wallet: "0x8D4Db00CD47035ECDeA0815bDB565b956b2844eb",
+            name: "Marcio recebe",
+            wallet: "0xeF9320247D0fd659DE16e70bbb7ABbDE6Bd62977",
           },
-          contents: "Hello, Bob!",
+          contents: "Hello, marcio!",
         };
         
         const signature = await signer.signTypedData(domain, types, value);
         signatureElem.textContent = `Signature: ${signature}`;
         // Bônus
         const digest = ethers.TypedDataEncoder.hash(domain, types, value)
-        console.log("Recovery address by signature: ", ethers.recoverAddress(digest, signature))
+        const send = ethers.recoverAddress(digest, signature)
+        console.log("send",send);
+        sendElem.textContent = `Send: ${send}`;
       });
     </script>
   </body>
